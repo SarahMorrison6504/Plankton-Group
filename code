@@ -233,3 +233,71 @@ summary(anova_d2)
 
 TukeyHSD(anova_d1)
 TukeyHSD(anova_d2)
+
+## doc code
+doc<- doc_final
+
+
+df_day1 <- doc %>% filter(Day == 1)
+df_day2 <- doc %>% filter(Day == 2)
+DOC_colors <- c(
+  "Controlled" = "#66c2a5",                  # Soft Blue
+  "Dissolved Organic \nCarbon (DOC)" = "#fc8d62",  # Sky Cyan
+  "Phosphate" = "#56B4E9",                   # Leaf Green
+  "Phosphate & DOC" = "#CC79A7"              # Mustard Yellow
+)
+
+# Apply descriptive labels
+treatment_labels <- c(
+  "C" = "Controlled",
+  "D" = "Dissolved Organic \nCarbon (DOC)",
+  "P" = "Phosphate",
+  "PD" = "Phosphate & DOC"
+)
+df_day1 <- df_day1 %>%
+  mutate(Treatment_label = treatment_labels[Sample])
+df_day2 <- df_day2 %>%
+  mutate(Treatment_label = treatment_labels[Sample])
+
+y_limits <- range(c(df_day1$doc_conc, df_day2$doc_conc), na.rm = TRUE)
+
+(day1 <- ggplot(df_day1, aes(x = Treatment_label, y = doc_conc, fill = Treatment_label)) +
+    geom_boxplot() +
+    geom_point() +
+    scale_y_continuous(limits = y_limits, labels = scales::comma) +
+    labs(title = "a) Day 1",
+         y = "DOC concentration mg/L",
+         x = "Treatment") +
+    theme_classic() +
+    scale_fill_manual(values = DOC_colors) +
+    theme(legend.position = "none",
+          axis.text.x = element_text()))
+
+(day2 <- ggplot(df_day2, aes(x = Treatment_label, y = doc_conc, fill = Treatment_label)) +
+    geom_boxplot() +
+    geom_point() +
+    scale_y_continuous(limits = y_limits, labels = scales::comma) +
+    labs(title = "b) Day 2",
+         x = "Treatment") +
+    theme_classic() +
+    scale_fill_manual(values = DOC_colors) +
+    theme( legend.position = "none",axis.text.x  = element_text(), axis.title.y = element_blank(),   # remove y-axis title
+           axis.text.y  = element_blank(),   # remove y-axis labels
+           axis.ticks.y = element_blank(),   # remove y-axis ticks
+           axis.line.y  = element_blank()    # remove y-axis line
+    ))
+# Combine plots
+doc_panel <- grid.arrange(day1, day2, ncol = 2)
+png('DOC_graph.png', width= 9, height = 6, units = "in", res = 400)
+doc_panel <- grid.arrange(day1, day2, ncol = 2)
+dev.off()
+
+lmdoc1<-lm(doc_conc~Treatment_label,data=df_day1)
+plot(lmPhosphate1)
+anova(lmdoc1)
+
+lmP2<-lm(doc_conc~Treatment_label,data=df_day2)
+plot(lmP2)
+anova(lmP2)
+
+
